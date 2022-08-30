@@ -27,7 +27,7 @@ pub fn collide(
         //debug::spawn_square(commands, a_min, a_max, Color::rgb(1.0, 0.0, 0.0));
         //debug::spawn_square(commands, b_min, b_max, Color::rgb(0.0, 1.0, 0.0));
         let total_img_a_data_size = ((img_a.size().x as i64 * img_a.size().y as i64 * 4) - 1) as usize;
-        let total_img_b_data_size = ((img_b.size().x as i64 * img_b.size().y as i64 * 4) -1) as usize;
+        //let total_img_b_data_size = ((img_b.size().x as i64 * img_b.size().y as i64 * 4) -1) as usize;
 
         //let mut ret = false;
         for x in intersect_min.x..intersect_max.x {
