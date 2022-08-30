@@ -1,8 +1,8 @@
-use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy::prelude::*;
 
+use crate::collision;
 use crate::config;
 use crate::enemies;
-use crate::collision;
 
 pub struct PlayerPlugin;
 
@@ -134,12 +134,8 @@ fn collide_shots_with_enemies_system(
         if let Some(enemy_img) = imgs.get(enemy_img_handle) {
             for (shot, shot_trans, shot_img_handle) in &mut shots_query {
                 if let Some(shot_img) = imgs.get(shot_img_handle) {
-                    let collision = collision::collide(
-                        enemy_trans,
-                        enemy_img,
-                        shot_trans,
-                        shot_img,
-                    );
+                    let collision =
+                        collision::collide(enemy_trans, enemy_img, shot_trans, shot_img);
                     if collision {
                         commands.entity(enemy).despawn();
                         commands.entity(shot).despawn();
@@ -170,18 +166,14 @@ fn collide_with_enemies_system(
     mut commands: Commands,
     imgs: Res<Assets<Image>>,
     mut player_query: Query<(&Transform, &Handle<Image>), With<Player>>,
-    mut enemy_query: Query<(Entity, &Transform, &Handle<Image>), With<enemies::Advancing>>,
+    mut enemy_query: Query<(Entity, &Transform, &Handle<Image>), With<enemies::Enemy>>,
 ) {
     let (ship_transform, ship_img_handle) = player_query.single_mut();
     if let Some(ship_img) = imgs.get(ship_img_handle) {
         for (enemy, enemy_trans, enemy_img_handle) in &mut enemy_query {
             if let Some(enemy_img) = imgs.get(enemy_img_handle) {
-                let collision = collision::collide(
-                    ship_transform,
-                    ship_img,
-                    enemy_trans,
-                    enemy_img,
-                );
+                let collision =
+                    collision::collide(ship_transform, ship_img, enemy_trans, enemy_img);
                 if collision {
                     commands.entity(enemy).despawn();
                 }
