@@ -16,6 +16,7 @@ impl Plugin for DebugPlugin {
 #[derive(Component)]
 pub struct Draggable;
 
+#[allow(dead_code)]
 pub fn spawn_square(commands: &mut Commands, p1: IVec2, p2: IVec2, color: Color) {
     commands
         .spawn()
