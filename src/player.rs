@@ -11,7 +11,10 @@ struct ShootingTimer(Timer);
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup_player)
-            .insert_resource(ShootingTimer(Timer::from_seconds(config::SHOT_SPEED, false)))
+            .insert_resource(ShootingTimer(Timer::from_seconds(
+                config::SHOT_SPEED,
+                false,
+            )))
             .add_system(player_movement_system)
             .add_system(player_shooting_system)
             .add_system(despawn_shots_system)
