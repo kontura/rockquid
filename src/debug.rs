@@ -17,14 +17,19 @@ impl Plugin for DebugPlugin {
 pub struct Draggable;
 
 #[allow(dead_code)]
-pub fn spawn_square(commands: &mut Commands, p1: IVec2, p2: IVec2, color: Color) {
+pub fn spawn_square(commands: &mut Commands, p1: Vec2, p2: Vec2, color: Color) {
+    let mut scale = (p1 - p2).extend(1.0);
+    if scale.x == 0.0 || scale.y == 0.0 {
+        scale.x = 1.0;
+        scale.y = 1.0;
+    }
     commands
         .spawn()
         .insert(DebugCollideDraw)
         .insert_bundle(SpriteBundle {
             transform: Transform {
-                scale: (p1 - p2).as_vec2().extend(1.0),
-                translation: p2.as_vec2().lerp(p1.as_vec2(), 0.5).extend(1.0),
+                scale: scale,
+                translation: p2.lerp(p1, 0.5).extend(1.0),
                 ..default()
             },
             sprite: Sprite {
