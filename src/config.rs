@@ -6,3 +6,8 @@ pub const PLAYER_SPEED: f32 = 500.0;
 pub const ENEMY_MOVEMENT_SEED: f32 = 100.0;
 pub const SHOT_MOVEMENT_SEED: f32 = 800.0;
 pub const SHOT_SPEED: f32 = 0.8;
+// Scoreboard
+pub const SCOREBOARD_FONT_SIZE: f32 = 40.0;
+pub const SCOREBOARD_TEXT_COLOR: Color = Color::rgb(0.5, 0.5, 1.0);
+pub const SCOREBOARD_SCORE_COLOR: Color = Color::rgb(1.0, 0.5, 0.5);
+pub const SCOREBOARD_TEXT_PADDING: Val = Val::Px(5.0);

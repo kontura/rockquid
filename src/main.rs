@@ -5,6 +5,7 @@ mod player;
 mod enemies;
 mod collision;
 mod debug;
+mod ui;
 
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
@@ -27,6 +28,7 @@ fn main() {
         .add_plugin(player::PlayerPlugin)
         .add_plugin(enemies::EnemiesPlugin)
         .add_plugin(debug::DebugPlugin)
+        .add_plugin(ui::UiPlugin)
         .add_startup_system(setup)
         .add_system(bevy::window::close_on_esc)
         .run();
