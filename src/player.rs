@@ -1,8 +1,9 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, app::AppExit};
 
 use crate::collision;
 use crate::config;
 use crate::enemies;
+use crate::ui;
 
 pub struct PlayerPlugin;
 
@@ -25,8 +26,9 @@ impl Plugin for PlayerPlugin {
 }
 
 #[derive(Component)]
-struct Player {
+pub struct Player {
     movement_speed: f32,
+    pub health: i32,
 }
 
 #[derive(Component)]
@@ -35,9 +37,10 @@ struct Shot {
 }
 
 impl Player {
-    fn new(movement_speed: f32) -> Player {
+    fn new(movement_speed: f32, health: i32) -> Player {
         Player {
-            movement_speed: movement_speed,
+            movement_speed,
+            health,
         }
     }
 }
@@ -54,7 +57,7 @@ fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
             ..default()
         })
-        .insert(Player::new(config::PLAYER_SPEED));
+        .insert(Player::new(config::PLAYER_SPEED, config::PLAYER_HEALTH));
 }
 
 fn player_movement_system(
@@ -129,6 +132,7 @@ fn advancing_shots_system(mut query: Query<(&Shot, &mut Transform)>) {
 
 fn collide_shots_with_enemies_system(
     mut commands: Commands,
+    mut scoreboard: ResMut<ui::Scoreboard>,
     imgs: Res<Assets<Image>>,
     mut shots_query: Query<(Entity, &Transform, &Handle<Image>), With<Shot>>,
     mut enemy_query: Query<(Entity, &Transform, &Handle<Image>), With<enemies::Advancing>>,
@@ -140,6 +144,7 @@ fn collide_shots_with_enemies_system(
                     let collision =
                         collision::collide(enemy_trans, enemy_img, shot_trans, shot_img);
                     if collision {
+                        scoreboard.score += 1;
                         commands.entity(enemy).despawn();
                         commands.entity(shot).despawn();
                     }
@@ -168,10 +173,12 @@ fn despawn_shots_system(
 fn collide_with_enemies_system(
     mut commands: Commands,
     imgs: Res<Assets<Image>>,
-    mut player_query: Query<(&Transform, &Handle<Image>), With<Player>>,
+    mut redraw_health: ResMut<ui::RedrawHealth>,
+    mut player_query: Query<(&Transform, &Handle<Image>, &mut Player)>,
+    mut app_exit_events: EventWriter<AppExit>,
     mut enemy_query: Query<(Entity, &Transform, &Handle<Image>), With<enemies::Enemy>>,
 ) {
-    let (ship_transform, ship_img_handle) = player_query.single_mut();
+    let (ship_transform, ship_img_handle, mut player) = player_query.single_mut();
     if let Some(ship_img) = imgs.get(ship_img_handle) {
         for (enemy, enemy_trans, enemy_img_handle) in &mut enemy_query {
             if let Some(enemy_img) = imgs.get(enemy_img_handle) {
@@ -179,6 +186,12 @@ fn collide_with_enemies_system(
                     collision::collide(ship_transform, ship_img, enemy_trans, enemy_img);
                 if collision {
                     commands.entity(enemy).despawn();
+                    if player.health > 1 {
+                        player.health -= 1;
+                        redraw_health.redraw = true;
+                    } else {
+                        app_exit_events.send(AppExit);
+                    }
                 }
             }
         }
