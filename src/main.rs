@@ -16,8 +16,8 @@ fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
             title: "Rockquid".to_string(),
-            width: config::BOUNDS[0],
-            height: config::BOUNDS[1],
+            width: config::WINDOW_BOUNDS[0],
+            height: config::WINDOW_BOUNDS[1],
             ..default()
         })
         .insert_resource(WgpuSettings {

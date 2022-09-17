@@ -67,7 +67,7 @@ fn dragging_system(
             println!("click at {:?}", window.cursor_position());
             if let Some(c) = closest {
                 if let Ok(mut c_t) = query.get_component_mut::<Transform>(c) {
-                    c_t.translation = (cur_pos - config::BOUNDS / 2.0).extend(0.0);
+                    c_t.translation = (cur_pos - config::WINDOW_BOUNDS / 2.0).extend(0.0);
                 }
             }
         }

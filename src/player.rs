@@ -90,7 +90,7 @@ fn player_movement_system(
     let translation_delta = movement_directions * movement_distance;
     transform.translation += translation_delta;
 
-    let extents = Vec3::from((config::BOUNDS / 2.0, 0.0));
+    let extents = Vec3::from((config::MAP_BOUNDS / 2.0, 0.0));
     transform.translation = transform.translation.min(extents).max(-extents);
 }
 
@@ -164,8 +164,8 @@ fn despawn_shots_system(
 ) {
     for (shot_entity, trans) in &mut query {
         //TODO(amatej): mayber despawn UNDER the screen
-        if trans.translation.y < -config::BOUNDS.y / 2.0
-            || trans.translation.y > config::BOUNDS.y / 2.0
+        if trans.translation.y < -config::MAP_BOUNDS.y / 2.0
+            || trans.translation.y > config::MAP_BOUNDS.y / 2.0
         {
             commands.entity(shot_entity).despawn();
         }

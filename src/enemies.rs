@@ -29,7 +29,7 @@ impl Plugin for EnemiesPlugin {
 
 fn setup_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
     let enemy_handle = asset_server.load("textures/enemy_A.png");
-    let mut enemy_start_transform = Transform::from_xyz(0.0, config::BOUNDS.y / 2.0, 0.0);
+    let mut enemy_start_transform = Transform::from_xyz(0.0, config::MAP_BOUNDS.y / 2.0, 0.0);
     enemy_start_transform.rotate_z(f32::to_radians(180.0));
     commands
         .spawn_bundle(SpriteBundle {
@@ -62,9 +62,9 @@ fn spawn_enemies_system(
         //TODO(amatej): I think the texture should be a resource? - load it just once
         let enemy_handle = asset_server.load("textures/enemy_A.png");
         let random_pos =
-            rand::thread_rng().gen_range((-config::BOUNDS.x / 2.0)..(config::BOUNDS.x / 2.0));
+            rand::thread_rng().gen_range((-config::MAP_BOUNDS.x / 2.0)..(config::MAP_BOUNDS.x / 2.0));
         let mut enemy_start_transform =
-            Transform::from_xyz(random_pos, config::BOUNDS.y / 2.0, 0.0);
+            Transform::from_xyz(random_pos, config::MAP_BOUNDS.y / 2.0, 0.0);
         enemy_start_transform.rotate_z(f32::to_radians(180.0));
         commands
             .spawn_bundle(SpriteBundle {
@@ -87,7 +87,7 @@ fn despawn_enemies_system(
 ) {
     for (advancing_entity, trans) in &mut query {
         //TODO(amatej): mayber despawn UNDER the screen
-        if trans.translation.y < -config::BOUNDS.y / 2.0 {
+        if trans.translation.y < -config::MAP_BOUNDS.y / 2.0 {
             commands.entity(advancing_entity).despawn();
         }
     }
