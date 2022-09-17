@@ -20,7 +20,7 @@ pub struct Advancing {
 impl Plugin for EnemiesPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup_enemies)
-            .insert_resource(SpawnEnemiesTimer(Timer::from_seconds(1.0, true)))
+            .insert_resource(SpawnEnemiesTimer(Timer::from_seconds(0.5, true)))
             .add_system(advancing_enemies_system)
             .add_system(spawn_enemies_system)
             .add_system(despawn_enemies_system);
