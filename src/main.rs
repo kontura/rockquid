@@ -6,6 +6,7 @@ mod enemies;
 mod collision;
 mod debug;
 mod ui;
+mod camera;
 
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());

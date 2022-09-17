@@ -4,6 +4,7 @@ use crate::collision;
 use crate::config;
 use crate::enemies;
 use crate::ui;
+use crate::camera;
 
 pub struct PlayerPlugin;
 
@@ -21,7 +22,8 @@ impl Plugin for PlayerPlugin {
             .add_system(despawn_shots_system)
             .add_system(collide_with_enemies_system)
             .add_system(collide_shots_with_enemies_system)
-            .add_system(advancing_shots_system);
+            .add_system(advancing_shots_system)
+            .add_system(camera::camera_follow_player);
     }
 }
 
