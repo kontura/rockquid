@@ -7,6 +7,9 @@ pub const ENEMY_MOVEMENT_SEED: f32 = 100.0;
 pub const SHOT_MOVEMENT_SEED: f32 = 800.0;
 pub const SHOT_SPEED: f32 = 0.8;
 
+pub const SCROLL_SPEED: f32 = 150.0;
+pub const TILE_SIDE: f32 = 32.0;
+
 // Player
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_HEALTH: i32 = 3;
