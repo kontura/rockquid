@@ -44,10 +44,9 @@ fn spawn_enemies_system(
     if timer.0.tick(time.delta()).just_finished() {
         //TODO(amatej): I think the texture should be a resource? - load it just once
         let enemy_handle = asset_server.load("textures/enemy_A.png");
-        let random_pos =
-            rand::thread_rng().gen_range((-config::MAP_BOUNDS.x / 2.0)..(config::MAP_BOUNDS.x / 2.0));
-        let random_speed_offset =
-            rand::thread_rng().gen_range((-config::ENEMY_MOVEMENT_SEED / 2.0)..(config::ENEMY_MOVEMENT_SEED / 2.0));
+        let random_pos = rand::thread_rng()
+            .gen_range((-config::MAP_BOUNDS.x / 2.0)..(config::MAP_BOUNDS.x / 2.0));
+        let random_speed_offset = rand::thread_rng().gen_range(0.0..config::ENEMY_MOVEMENT_SEED);
         let mut enemy_start_transform =
             Transform::from_xyz(random_pos, config::MAP_BOUNDS.y / 2.0, 0.0);
         enemy_start_transform.rotate_z(f32::to_radians(180.0));
