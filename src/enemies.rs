@@ -19,28 +19,11 @@ pub struct Advancing {
 
 impl Plugin for EnemiesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_enemies)
-            .insert_resource(SpawnEnemiesTimer(Timer::from_seconds(0.5, true)))
+        app.insert_resource(SpawnEnemiesTimer(Timer::from_seconds(0.5, true)))
             .add_system(advancing_enemies_system)
             .add_system(spawn_enemies_system)
             .add_system(despawn_enemies_system);
     }
-}
-
-fn setup_enemies(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let enemy_handle = asset_server.load("textures/enemy_A.png");
-    let mut enemy_start_transform = Transform::from_xyz(0.0, config::MAP_BOUNDS.y / 2.0, 0.0);
-    enemy_start_transform.rotate_z(f32::to_radians(180.0));
-    commands
-        .spawn_bundle(SpriteBundle {
-            texture: enemy_handle,
-            transform: enemy_start_transform,
-            ..default()
-        })
-        .insert(Advancing {
-            movement_speed: config::ENEMY_MOVEMENT_SEED,
-        })
-        .insert(Enemy { _alive: true });
 }
 
 fn advancing_enemies_system(mut query: Query<(&Advancing, &mut Transform)>) {
