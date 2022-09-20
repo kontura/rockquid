@@ -57,7 +57,7 @@ fn spawn_enemies_system(
                 ..default()
             })
             .insert(Advancing {
-                movement_speed: config::ENEMY_MOVEMENT_SEED + random_speed_offset,
+                movement_speed: random_speed_offset + config::SCROLL_SPEED,
             })
             .insert(Enemy { _alive: true });
     }
