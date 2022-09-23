@@ -5,7 +5,7 @@ use rand::Rng;
 pub struct MapPlugin;
 
 #[derive(Default)]
-struct Tiles {
+struct Map {
     handles: Vec<HandleUntyped>,
 }
 
@@ -28,7 +28,7 @@ enum PluginState {
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Tiles>();
+        app.init_resource::<Map>();
         app.add_state(PluginState::Loading);
         app.add_system_set(SystemSet::on_enter(PluginState::Loading).with_system(load_resources));
         app.add_system_set(SystemSet::on_update(PluginState::Loading).with_system(check_resources));
@@ -40,7 +40,7 @@ impl Plugin for MapPlugin {
 
 fn generate_map(
     mut commands: Commands,
-    tiles: Res<Tiles>,
+    map: Res<Map>,
     row_query: Query<(Entity, &Row), With<ToBeProcessedRow>>,
 ) {
     if row_query.is_empty() {
@@ -57,11 +57,11 @@ fn generate_map(
         config::MAP_BOUNDS.x / 2.0,
         config::MAP_BOUNDS.x / 2.0 - 4.0,
     ] {
-        let random_tile_index = rand::thread_rng().gen_range(0..(tiles.handles.len()));
+        let random_tile_index = rand::thread_rng().gen_range(0..(map.handles.len()));
         commands
             .spawn_bundle(SpriteBundle {
                 transform: Transform::from_translation(Vec3::new(side, row.y_pos, 0.0)),
-                texture: tiles.handles[random_tile_index].typed_weak(),
+                texture: map.handles[random_tile_index].typed_weak(),
                 ..Default::default()
             })
             .insert(Tile);
@@ -81,7 +81,7 @@ fn generate_map(
                 random_change_offset = random_change_offset - 20;
             }
 
-            let random_tile_index = rand::thread_rng().gen_range(0..(tiles.handles.len()));
+            let random_tile_index = rand::thread_rng().gen_range(0..(map.handles.len()));
             commands
                 .spawn_bundle(SpriteBundle {
                     transform: Transform::from_translation(Vec3::new(
@@ -89,7 +89,7 @@ fn generate_map(
                         row.y_pos,
                         0.0,
                     )),
-                    texture: tiles.handles[random_tile_index].typed_weak(),
+                    texture: map.handles[random_tile_index].typed_weak(),
                     ..Default::default()
                 })
                 .insert(Tile);
@@ -124,22 +124,22 @@ fn scroll_map(
 }
 
 fn check_resources(
-    tiles: ResMut<Tiles>,
+    map: ResMut<Map>,
     mut state: ResMut<State<PluginState>>,
     asset_server: Res<AssetServer>,
 ) {
     if let bevy::asset::LoadState::Loaded =
-        asset_server.get_group_load_state(tiles.handles.iter().map(|handle| handle.id))
+        asset_server.get_group_load_state(map.handles.iter().map(|handle| handle.id))
     {
         state.set(PluginState::Loaded).unwrap();
     }
 }
 
-fn load_resources(mut tiles: ResMut<Tiles>, asset_server: Res<AssetServer>) {
-    tiles.handles = asset_server.load_folder("textures/tiles").unwrap();
+fn load_resources(mut map: ResMut<Map>, asset_server: Res<AssetServer>) {
+    map.handles = asset_server.load_folder("textures/tiles").unwrap();
 }
 
-fn setup(mut commands: Commands, tiles: Res<Tiles>) {
+fn setup(mut commands: Commands, map: Res<Map>) {
     let tiles_per_map = (config::MAP_BOUNDS / config::TILE_SIDE).as_ivec2();
 
     // spawn side map bounds
@@ -150,11 +150,11 @@ fn setup(mut commands: Commands, tiles: Res<Tiles>) {
         config::MAP_BOUNDS.x / 2.0 - 4.0,
     ] {
         for pos in -tiles_per_map.y / 2..tiles_per_map.y / 2 {
-            let random_tile_index = rand::thread_rng().gen_range(0..(tiles.handles.len()));
+            let random_tile_index = rand::thread_rng().gen_range(0..(map.handles.len()));
             commands
                 .spawn_bundle(SpriteBundle {
                     transform: Transform::from_translation(Vec3::new(side, pos as f32 * 4.0, 0.0)),
-                    texture: tiles.handles[random_tile_index].typed_weak(),
+                    texture: map.handles[random_tile_index].typed_weak(),
                     ..Default::default()
                 })
                 .insert(Tile);
