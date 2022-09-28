@@ -18,7 +18,7 @@ struct Row {
 struct ToBeProcessedRow;
 
 #[derive(Component)]
-struct Tile;
+pub struct Tile;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum PluginState {

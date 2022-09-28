@@ -5,6 +5,7 @@ use crate::config;
 use crate::enemies;
 use crate::ui;
 use crate::camera;
+use crate::map;
 
 pub struct PlayerPlugin;
 
@@ -22,6 +23,7 @@ impl Plugin for PlayerPlugin {
             .add_system(despawn_shots_system)
             .add_system(collide_with_enemies_system)
             .add_system(collide_shots_with_enemies_system)
+            .add_system(collide_with_walls_system)
             .add_system(advancing_shots_system)
             .add_system(camera::camera_follow_player);
     }
@@ -194,6 +196,26 @@ fn collide_with_enemies_system(
                     } else {
                         app_exit_events.send(AppExit);
                     }
+                }
+            }
+        }
+    }
+}
+
+fn collide_with_walls_system(
+    imgs: Res<Assets<Image>>,
+    mut player_query: Query<(&Transform, &Handle<Image>), With<Player>>,
+    mut app_exit_events: EventWriter<AppExit>,
+    mut tile_query: Query<(&Transform, &Handle<Image>), With<map::Tile>>,
+) {
+    let (ship_transform, ship_img_handle) = player_query.single_mut();
+    if let Some(ship_img) = imgs.get(ship_img_handle) {
+        for (tile_trans, tile_img_handle) in &mut tile_query {
+            if let Some(tile_img) = imgs.get(tile_img_handle) {
+                let collision =
+                    collision::collide(ship_transform, ship_img, tile_trans, tile_img);
+                if collision {
+                    app_exit_events.send(AppExit);
                 }
             }
         }
