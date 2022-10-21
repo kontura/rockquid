@@ -55,7 +55,7 @@ fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(SpriteBundle {
             texture: ship_handle,
             transform: Transform {
-                translation: Vec3::new(0.0, 0.0, 0.0),
+                translation: Vec3::new(0.0, -330.0, 0.0),
                 scale: Vec3::new(1.0, 1.0, 0.0),
                 ..default()
             },
