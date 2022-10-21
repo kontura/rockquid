@@ -5,8 +5,9 @@ use rand::Rng;
 pub struct MapPlugin;
 
 #[derive(Default)]
-struct Map {
+pub struct Map {
     handles: Vec<HandleUntyped>,
+    pub scroll_speed: f32,
 }
 
 #[derive(Component)]
@@ -28,17 +29,20 @@ enum PluginState {
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Map>();
+        app.insert_resource(Map {
+            handles: Vec::new(),
+            scroll_speed: config::SCROLL_SPEED,
+        });
         app.add_state(PluginState::Loading);
         app.add_system_set(SystemSet::on_enter(PluginState::Loading).with_system(load_resources));
         app.add_system_set(SystemSet::on_update(PluginState::Loading).with_system(check_resources));
         app.add_system_set(SystemSet::on_enter(PluginState::Loaded).with_system(setup));
-        app.add_system(scroll_map);
-        app.add_system(generate_map);
+        app.add_system(scroll_map_system);
+        app.add_system(generate_map_system);
     }
 }
 
-fn generate_map(
+fn generate_map_system(
     mut commands: Commands,
     map: Res<Map>,
     row_query: Query<(Entity, &Row), With<ToBeProcessedRow>>,
@@ -51,6 +55,7 @@ fn generate_map(
 
     commands.entity(entity).remove::<ToBeProcessedRow>();
 
+    // Spawn sides
     for side in vec![
         -config::MAP_BOUNDS.x / 2.0,
         -config::MAP_BOUNDS.x / 2.0 + 4.0,
@@ -67,6 +72,7 @@ fn generate_map(
             .insert(Tile);
     }
 
+    // Spawn middle per chance
     let from = -(config::MAP_BOUNDS.x / 2.0) as i32;
     let to = (config::MAP_BOUNDS.x / 2.0) as i32;
     let mut random_change_offset = 0;
@@ -84,11 +90,7 @@ fn generate_map(
             let random_tile_index = rand::thread_rng().gen_range(0..(map.handles.len()));
             commands
                 .spawn_bundle(SpriteBundle {
-                    transform: Transform::from_translation(Vec3::new(
-                        pos as f32,
-                        row.y_pos,
-                        0.0,
-                    )),
+                    transform: Transform::from_translation(Vec3::new(pos as f32, row.y_pos, 0.0)),
                     texture: map.handles[random_tile_index].typed_weak(),
                     ..Default::default()
                 })
@@ -99,25 +101,26 @@ fn generate_map(
     }
 }
 
-fn scroll_map(
+fn scroll_map_system(
+    map: Res<Map>,
     mut commands: Commands,
     mut tile_query: Query<(Entity, &mut Transform), With<Tile>>,
     mut row_query: Query<(Entity, &mut Row)>,
 ) {
     let scroll_direction = Vec3::Y;
-    let scroll_distance = scroll_direction * config::SCROLL_SPEED * config::TIME_STEP;
+    let scroll_distance = scroll_direction * map.scroll_speed * config::TIME_STEP;
 
     for (entity, mut row) in &mut row_query {
         row.y_pos -= scroll_distance.y;
-        if row.y_pos < -config::MAP_BOUNDS.y / 2.0 - 2.0*config::TILE_SIDE {
-            row.y_pos += config::MAP_BOUNDS.y + 3.0*config::TILE_SIDE;
+        if row.y_pos < -config::MAP_BOUNDS.y / 2.0 - 2.0 * config::TILE_SIDE {
+            row.y_pos += config::MAP_BOUNDS.y + 3.0 * config::TILE_SIDE;
             commands.entity(entity).insert(ToBeProcessedRow);
         }
     }
 
     for (tile, mut tile_trans) in &mut tile_query {
         tile_trans.translation -= scroll_distance;
-        if tile_trans.translation.y < -config::MAP_BOUNDS.y / 2.0 - 2.0*config::TILE_SIDE {
+        if tile_trans.translation.y < -config::MAP_BOUNDS.y / 2.0 - 2.0 * config::TILE_SIDE {
             commands.entity(tile).despawn();
         }
     }

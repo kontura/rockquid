@@ -65,6 +65,7 @@ fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn player_movement_system(
+    mut map: ResMut<map::Map>,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<(&Player, &mut Transform)>,
 ) {
@@ -89,7 +90,10 @@ fn player_movement_system(
 
     let movement_directions = transform.rotation * (Vec3::Y + Vec3::X);
     let movement_distance = movement_factor * ship.movement_speed * config::TIME_STEP;
-    let translation_delta = movement_directions * movement_distance;
+    let mut translation_delta = movement_directions * movement_distance;
+    //TODO(amatej): what values should be here? 10*translation_delta seems harly right
+    map.scroll_speed = config::SCROLL_SPEED + translation_delta.y*10.0;
+    translation_delta.y = 0.0;
     transform.translation += translation_delta;
 
     let extents = Vec3::from((config::MAP_BOUNDS / 2.0, 0.0));

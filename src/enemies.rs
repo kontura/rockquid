@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::config;
+use crate::map;
 use rand::Rng;
 
 pub struct EnemiesPlugin;
@@ -26,10 +27,12 @@ impl Plugin for EnemiesPlugin {
     }
 }
 
-fn advancing_enemies_system(mut query: Query<(&Advancing, &mut Transform)>) {
+fn advancing_enemies_system(
+    map: Res<map::Map>,
+    mut query: Query<(&Advancing, &mut Transform)>) {
     let advancing_direction = Vec3::Y;
     for (advacing, mut trans) in &mut query {
-        let advacing_distance = advancing_direction * advacing.movement_speed * config::TIME_STEP;
+        let advacing_distance = advancing_direction * (advacing.movement_speed + map.scroll_speed) * config::TIME_STEP;
         let advacing_delta = advancing_direction * advacing_distance;
         trans.translation -= advacing_delta;
     }
@@ -57,7 +60,7 @@ fn spawn_enemies_system(
                 ..default()
             })
             .insert(Advancing {
-                movement_speed: random_speed_offset + config::SCROLL_SPEED,
+                movement_speed: random_speed_offset,
             })
             .insert(Enemy { _alive: true });
     }
