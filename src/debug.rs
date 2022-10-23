@@ -17,8 +17,8 @@ impl Plugin for DebugPlugin {
 pub struct Draggable;
 
 #[allow(dead_code)]
-pub fn spawn_square(commands: &mut Commands, p1: Vec2, p2: Vec2, color: Color) {
-    let mut scale = (p1 - p2).extend(1.0);
+pub fn spawn_square(commands: &mut Commands, p1: Vec3, p2: Vec3, color: Color) {
+    let mut scale = p1 - p2;
     if scale.x == 0.0 || scale.y == 0.0 {
         scale.x = 1.0;
         scale.y = 1.0;
@@ -29,7 +29,7 @@ pub fn spawn_square(commands: &mut Commands, p1: Vec2, p2: Vec2, color: Color) {
         .insert_bundle(SpriteBundle {
             transform: Transform {
                 scale: scale,
-                translation: p2.lerp(p1, 0.5).extend(1.0),
+                translation: p2.lerp(p1, 0.5),
                 ..default()
             },
             sprite: Sprite {
