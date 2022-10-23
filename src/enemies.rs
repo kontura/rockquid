@@ -11,6 +11,7 @@ struct SpawnEnemiesTimer(Timer);
 #[derive(Component)]
 pub struct Enemy {
     _alive: bool,
+    path: Vec<Vec2>,
 }
 
 #[derive(Component)]
@@ -42,27 +43,56 @@ fn spawn_enemies_system(
     time: Res<Time>,
     mut timer: ResMut<SpawnEnemiesTimer>,
     mut commands: Commands,
+    mut tile_query: Query<&Transform, With<map::Tile>>,
     asset_server: Res<AssetServer>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
         //TODO(amatej): I think the texture should be a resource? - load it just once
         let enemy_handle = asset_server.load("textures/enemy_A.png");
-        let random_pos = rand::thread_rng()
-            .gen_range((-config::MAP_BOUNDS.x / 2.0)..(config::MAP_BOUNDS.x / 2.0));
-        let random_speed_offset = rand::thread_rng().gen_range(0.0..config::ENEMY_MOVEMENT_SEED);
-        let mut enemy_start_transform =
-            Transform::from_xyz(random_pos, config::MAP_BOUNDS.y / 2.0, 0.0);
-        enemy_start_transform.rotate_z(f32::to_radians(180.0));
-        commands
-            .spawn_bundle(SpriteBundle {
-                texture: enemy_handle,
-                transform: enemy_start_transform,
-                ..default()
-            })
-            .insert(Advancing {
-                movement_speed: random_speed_offset,
-            })
-            .insert(Enemy { _alive: true });
+        let random_pos = rand::thread_rng().gen_range(
+            ((-(config::TILES_PER_WIDTH - 3) as f32 / 2.0) as i32)
+                ..(((config::TILES_PER_WIDTH - 3) as f32 / 2.0) as i32),
+        );
+        let random_pos_world = random_pos as f32 * config::TILE_SIDE;
+
+        let mut random_pos_clear = true;
+        // check if picked random_pos is free and don't spawn enemy if it isn't
+        for tile_trans in &mut tile_query {
+            if tile_trans.translation.y >= config::MAP_BOUNDS.y / 2.0 - 2.0 * config::TILE_SIDE {
+                if tile_trans.translation.x >= random_pos_world - 2.0 * config::TILE_SIDE
+                    && tile_trans.translation.x <= random_pos_world + 2.0 * config::TILE_SIDE
+                {
+                    random_pos_clear = false;
+                    break;
+                }
+            }
+        }
+
+        if random_pos_clear {
+            let random_speed_offset =
+                rand::thread_rng().gen_range(0.0..config::ENEMY_MOVEMENT_SEED);
+            let mut enemy_start_transform =
+                Transform::from_xyz(random_pos_world, config::MAP_BOUNDS.y / 2.0, 0.0);
+            enemy_start_transform.rotate_z(f32::to_radians(180.0));
+            commands
+                .spawn_bundle(SpriteBundle {
+                    texture: enemy_handle,
+                    transform: enemy_start_transform,
+                    ..default()
+                })
+                .insert(Advancing {
+                    movement_speed: random_speed_offset,
+                })
+                .insert(Enemy {
+                    _alive: true,
+                    path: vec![
+                        Vec2::new(0.0, 0.0),
+                        Vec2::new(random_pos_world, (config::MAP_BOUNDS.y / 2.0) - 430.0),
+                        Vec2::new(random_pos_world-40.0, (config::MAP_BOUNDS.y / 2.0) - 240.0),
+                        Vec2::new(random_pos_world+40.0, (config::MAP_BOUNDS.y / 2.0) - 130.0),
+                    ],
+                });
+        }
     }
 }
 
