@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::config;
 use crate::map;
+//use bevy_prototype_debug_lines::*;
 use rand::Rng;
 
 pub struct EnemiesPlugin;
@@ -30,12 +31,30 @@ impl Plugin for EnemiesPlugin {
 
 fn advancing_enemies_system(
     map: Res<map::Map>,
-    mut query: Query<(&Advancing, &mut Transform)>) {
-    let advancing_direction = Vec3::Y;
-    for (advacing, mut trans) in &mut query {
-        let advacing_distance = advancing_direction * (advacing.movement_speed + map.scroll_speed) * config::TIME_STEP;
+    //mut lines: ResMut<DebugLines>,
+    mut query: Query<(&Advancing, &mut Transform, &mut Enemy)>,
+) {
+    for (advacing, mut trans, mut enemy) in &mut query {
+        let advancing_direction: Vec3;
+        if let Some(t) = enemy.path.last() {
+            let target = t.extend(0.0);
+            advancing_direction = (target - trans.translation).normalize();
+            if (target - trans.translation.round()).abs().cmple(Vec3::new(5.0, 5.0, 5.0)).all() {
+                enemy.path.pop();
+            }
+        } else {
+            advancing_direction = -Vec3::Y;
+        }
+        //lines.line(
+        //    trans.translation,
+        //    trans.translation + (advancing_direction * 100.0),
+        //    0.0,
+        //);
+
+        let advacing_distance: f32 =
+            (advacing.movement_speed + map.scroll_speed) * config::TIME_STEP;
         let advacing_delta = advancing_direction * advacing_distance;
-        trans.translation -= advacing_delta;
+        trans.translation += advacing_delta;
     }
 }
 
