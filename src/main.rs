@@ -1,12 +1,13 @@
 use bevy::{prelude::*, render::settings::WgpuSettings};
 
-mod config;
-mod player;
-mod enemies;
-mod collision;
-mod debug;
-mod ui;
 mod camera;
+mod collision;
+mod config;
+mod debug;
+mod enemies;
+mod player;
+mod ui;
+use bevy_prototype_debug_lines::*;
 
 mod map;
 
@@ -35,5 +36,6 @@ fn main() {
         .add_plugin(map::MapPlugin)
         .add_startup_system(setup)
         .add_system(bevy::window::close_on_esc)
+        .add_plugin(DebugLinesPlugin::default())
         .run();
 }

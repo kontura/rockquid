@@ -17,3 +17,7 @@ opt-level = 3
 [dependencies]
 bevy = { version = "0.8.0", features = ["dynamic", "wayland"] }
 rand = "0.8"
+pathfinding = "3.0.14"
+
+# DEBUG ONLY
+bevy_prototype_debug_lines = "0.8"
