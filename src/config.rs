@@ -9,6 +9,8 @@ pub const SHOT_SPEED: f32 = 0.8;
 
 pub const SCROLL_SPEED: f32 = 150.0;
 pub const TILE_SIDE: f32 = 32.0;
+pub const TILES_PER_WIDTH: i32 = (MAP_BOUNDS.x / TILE_SIDE) as i32;
+pub const ROWS_PER_HEIGHT: i32 = (MAP_BOUNDS.y / TILE_SIDE) as i32;
 
 // Player
 pub const PLAYER_SPEED: f32 = 500.0;

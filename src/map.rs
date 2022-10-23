@@ -143,7 +143,6 @@ fn load_resources(mut map: ResMut<Map>, asset_server: Res<AssetServer>) {
 }
 
 fn setup(mut commands: Commands, map: Res<Map>) {
-    let tiles_per_map = (config::MAP_BOUNDS / config::TILE_SIDE).as_ivec2();
 
     // spawn side map bounds
     for side in vec![
@@ -152,7 +151,7 @@ fn setup(mut commands: Commands, map: Res<Map>) {
         config::MAP_BOUNDS.x / 2.0,
         config::MAP_BOUNDS.x / 2.0 - 4.0,
     ] {
-        for pos in -tiles_per_map.y / 2..tiles_per_map.y / 2 {
+        for pos in (-config::TILES_PER_WIDTH / 2)..(config::TILES_PER_WIDTH / 2) {
             let random_tile_index = rand::thread_rng().gen_range(0..(map.handles.len()));
             commands
                 .spawn_bundle(SpriteBundle {
@@ -165,7 +164,7 @@ fn setup(mut commands: Commands, map: Res<Map>) {
     }
 
     // spawn rows
-    for row_index in -3..tiles_per_map.y {
+    for row_index in -3..config::TILES_PER_WIDTH {
         commands.spawn().insert(Row {
             y_pos: config::MAP_BOUNDS.y / 2.0 - row_index as f32 * config::TILE_SIDE,
         });
