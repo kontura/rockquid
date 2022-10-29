@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::config;
 use crate::map;
-//use bevy_prototype_debug_lines::*;
+use bevy_prototype_debug_lines::*;
 use rand::Rng;
 
 pub struct EnemiesPlugin;
@@ -11,8 +11,10 @@ struct SpawnEnemiesTimer(Timer);
 
 #[derive(Component)]
 pub struct Enemy {
+    //TODO(amatej): not sure if _alive is wanted -> I delete it when killed..
     _alive: bool,
-    path: Vec<Vec2>,
+    pub path: Vec<map::Pos>,
+    pub scroll_offset: Vec3,
 }
 
 #[derive(Component)]
@@ -31,30 +33,36 @@ impl Plugin for EnemiesPlugin {
 
 fn advancing_enemies_system(
     map: Res<map::Map>,
-    //mut lines: ResMut<DebugLines>,
+    mut lines: ResMut<DebugLines>,
     mut query: Query<(&Advancing, &mut Transform, &mut Enemy)>,
 ) {
     for (advacing, mut trans, mut enemy) in &mut query {
         let advancing_direction: Vec3;
-        if let Some(t) = enemy.path.last() {
-            let target = t.extend(0.0);
-            advancing_direction = (target - trans.translation).normalize();
-            if (target - trans.translation.round()).abs().cmple(Vec3::new(5.0, 5.0, 5.0)).all() {
-                enemy.path.pop();
-            }
-        } else {
-            advancing_direction = -Vec3::Y;
-        }
-        //lines.line(
-        //    trans.translation,
-        //    trans.translation + (advancing_direction * 100.0),
-        //    0.0,
-        //);
+        if let Some(t) = enemy.path.first() {
+            let target = t.to_world_vec3() - enemy.scroll_offset;
 
-        let advacing_distance: f32 =
-            (advacing.movement_speed + map.scroll_speed) * config::TIME_STEP;
-        let advacing_delta = advancing_direction * advacing_distance;
-        trans.translation += advacing_delta;
+            advancing_direction = (target - trans.translation).normalize();
+            let mut previous_i = trans.translation;
+            for i in &enemy.path {
+                let t = i.to_world_vec3() - enemy.scroll_offset;
+                lines.line(previous_i, t, 0.0);
+                previous_i = t;
+            }
+            if (target - trans.translation.round())
+                .abs()
+                .cmple(Vec3::new(5.0, 5.0, 5.0))
+                .all()
+            {
+                enemy.path.remove(0);
+            }
+            let advacing_distance: f32 =
+                (advacing.movement_speed + map.scroll_speed) * config::TIME_STEP;
+            let advacing_delta = advancing_direction * advacing_distance;
+            trans.translation += advacing_delta;
+        } else {
+            // Stand on the current spot -> there is no way to pass
+            // This could be important especially for bigger sizes of ships (enemies)
+        }
     }
 }
 
@@ -104,11 +112,12 @@ fn spawn_enemies_system(
                 })
                 .insert(Enemy {
                     _alive: true,
+                    scroll_offset: Vec3::ZERO,
                     path: vec![
-                        Vec2::new(0.0, 0.0),
-                        Vec2::new(random_pos_world, (config::MAP_BOUNDS.y / 2.0) - 430.0),
-                        Vec2::new(random_pos_world-40.0, (config::MAP_BOUNDS.y / 2.0) - 240.0),
-                        Vec2::new(random_pos_world+40.0, (config::MAP_BOUNDS.y / 2.0) - 130.0),
+                        //map::Pos{0:0, 1:0},
+                        //Vec2::new(random_pos_world, (config::MAP_BOUNDS.y / 2.0) - 430.0),
+                        //Vec2::new(random_pos_world-40.0, (config::MAP_BOUNDS.y / 2.0) - 240.0),
+                        //Vec2::new(random_pos_world+40.0, (config::MAP_BOUNDS.y / 2.0) - 130.0),
                     ],
                 });
         }
