@@ -59,6 +59,16 @@ impl std::ops::Add<&Pos> for &Pos {
         }
     }
 }
+impl std::ops::Sub<&Pos> for &Pos {
+    type Output = Pos;
+
+    fn sub(self, other: &Pos) -> Pos {
+        Pos {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
 
 #[derive(Component)]
 struct Row {
@@ -265,9 +275,41 @@ fn generate_map_system(
         );
         //println!("result is: {:?}", result);
         if let Some(t) = result {
-            enemy.path = t.0;
+            enemy.path = prune_path(&t.0);
         }
     }
+}
+
+// Remove points with identical delta
+fn prune_path(path: &Vec<Pos>) -> Vec<Pos> {
+    if path.len() <= 2 {
+        return path.to_vec();
+    }
+    let mut pruned_paths: Vec<Pos> = Vec::new();
+
+    let mut last: Option<&Pos> = None;
+    let mut last_diff: Option<Pos> = None;
+    for node in path {
+        if let Some(last) = last {
+            if let Some(ld) = last_diff {
+                let diff = last - node;
+                if ld.x != diff.x || ld.y != diff.y {
+                    pruned_paths.push(*last);
+                }
+                last_diff = Some(diff);
+            } else {
+                last_diff = Some(last - node);
+            }
+        } else {
+            pruned_paths.push(*node);
+        }
+        last = Some(node);
+    }
+
+    if let Some(last) = path.last() {
+        pruned_paths.push(*last);
+    }
+    return pruned_paths;
 }
 
 fn scroll_map_system(
@@ -339,5 +381,52 @@ fn setup(mut commands: Commands, map: Res<Map>) {
         commands.spawn().insert(Row {
             y_pos: config::MAP_BOUNDS.y / 2.0 - row_index as f32 * config::TILE_SIDE,
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn prune_test() {
+        let path = vec![Pos { x: 0, y: 0 }, Pos { x: 0, y: 1 }];
+        assert_eq!(path, prune_path(&path));
+    }
+
+    #[test]
+    fn prune_test_1() {
+        let path = vec![Pos { x: 0, y: 0 }];
+        assert_eq!(path, prune_path(&path));
+    }
+
+    #[test]
+    fn dont_prune_different_nodes() {
+        let path = vec![Pos { x: 0, y: 0 }, Pos { x: 1, y: 1 }, Pos { x: -1, y: 2 }];
+        assert_eq!(path, prune_path(&path));
+    }
+
+    #[test]
+    fn prune_3_nodes_when_the_middle_is_redundant() {
+        let path = vec![Pos { x: 0, y: 0 }, Pos { x: 1, y: 1 }, Pos { x: 2, y: 2 }];
+        assert_eq!(
+            vec![Pos { x: 0, y: 0 }, Pos { x: 2, y: 2 }],
+            prune_path(&path)
+        );
+    }
+
+    #[test]
+    fn prune_5_nodes_when_there_are_redundants() {
+        let path = vec![
+            Pos { x: 0, y: 0 },
+            Pos { x: 1, y: 1 },
+            Pos { x: 2, y: 2 },
+            Pos { x: 1, y: 3 },
+            Pos { x: 0, y: 4 },
+        ];
+        assert_eq!(
+            vec![Pos { x: 0, y: 0 }, Pos { x: 2, y: 2 }, Pos { x: 0, y: 4 }],
+            prune_path(&path)
+        );
     }
 }
