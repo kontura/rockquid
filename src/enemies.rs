@@ -42,12 +42,15 @@ fn advancing_enemies_system(
             let target = t.to_world_vec3() - enemy.scroll_offset;
 
             advancing_direction = (target - trans.translation).normalize();
+
+            // Debug draw path
             let mut previous_i = trans.translation;
             for i in &enemy.path {
                 let t = i.to_world_vec3() - enemy.scroll_offset;
                 lines.line(previous_i, t, 0.0);
                 previous_i = t;
             }
+
             if (target - trans.translation.round())
                 .abs()
                 .cmple(Vec3::new(5.0, 5.0, 5.0))
