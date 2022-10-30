@@ -201,34 +201,105 @@ fn generate_map_system(
 
         let successors = |input: Pos| -> Vec<(Pos, u32)> {
             let mut sucs: Vec<Pos> = vec![];
-            for offset in vec![
-                Pos { x: 1, y: 1 },
-                Pos { x: 1, y: 0 },
-                Pos { x: 1, y: -1 },
-                Pos { x: 0, y: 1 },
-                Pos { x: 0, y: -1 },
-                Pos { x: -1, y: 1 },
-                Pos { x: -1, y: 0 },
-                Pos { x: -1, y: -1 },
+            for (new_pos_offset, new_space_taken_offsets) in vec![
+                (
+                    Pos { x: 1, y: 1 },
+                    vec![
+                        Pos { x: 0, y: 2 },
+                        Pos { x: 1, y: 2 },
+                        Pos { x: 2, y: 2 },
+                        Pos { x: 2, y: 1 },
+                        Pos { x: 1, y: 0 },
+                    ],
+                ),
+                (
+                    Pos { x: 1, y: 0 },
+                    vec![Pos { x: 2, y: 1 }, Pos { x: 2, y: 0 }, Pos { x: 2, y: -1 }],
+                ),
+                (
+                    Pos { x: 1, y: -1 },
+                    vec![
+                        Pos { x: 2, y: 0 },
+                        Pos { x: 2, y: -1 },
+                        Pos { x: 2, y: -2 },
+                        Pos { x: 1, y: -2 },
+                        Pos { x: 0, y: -2 },
+                    ],
+                ),
+                (
+                    Pos { x: 0, y: 1 },
+                    vec![Pos { x: -1, y: 2 }, Pos { x: 0, y: 2 }, Pos { x: 1, y: 2 }],
+                ),
+                (
+                    Pos { x: 0, y: -1 },
+                    vec![
+                        Pos { x: -1, y: -2 },
+                        Pos { x: 0, y: -2 },
+                        Pos { x: 1, y: -2 },
+                    ],
+                ),
+                (
+                    Pos { x: -1, y: 1 },
+                    vec![
+                        Pos { x: -2, y: 0 },
+                        Pos { x: -2, y: 1 },
+                        Pos { x: -2, y: 2 },
+                        Pos { x: -1, y: 2 },
+                        Pos { x: 0, y: 2 },
+                    ],
+                ),
+                (
+                    Pos { x: -1, y: 0 },
+                    vec![
+                        Pos { x: -2, y: 1 },
+                        Pos { x: -2, y: 0 },
+                        Pos { x: -2, y: -1 },
+                    ],
+                ),
+                (
+                    Pos { x: -1, y: -1 },
+                    vec![
+                        Pos { x: -2, y: 0 },
+                        Pos { x: -2, y: -1 },
+                        Pos { x: -2, y: -2 },
+                        Pos { x: -1, y: -2 },
+                        Pos { x: 0, y: -2 },
+                    ],
+                ),
             ] {
-                let testing_pos = &offset + &input;
-                let new_pos = testing_pos;
-                //println!("offset: {:?}", offset);
-                //println!("input: {:?}", input);
-                //println!("TILES_PER_WIDTH: {:?}", config::TILES_PER_WIDTH);
-
-                //println!("testing_pos before: {:?}", testing_pos);
-                //println!("testing_pos: {:?}", testing_pos);
-
-                // Befora I push I should check if I am outside of map -> and if so not push!
-                if testing_pos.x >= config::TILES_PER_WIDTH
-                    || testing_pos.x < 0
-                    || testing_pos.y >= config::ROWS_PER_HEIGHT
-                    || testing_pos.y < 0
+                // check if the actual position we are moving to is available
+                let new_pos = &input + &new_pos_offset;
+                if new_pos.x >= config::TILES_PER_WIDTH
+                    || new_pos.x < 0
+                    || new_pos.y >= config::ROWS_PER_HEIGHT
+                    || new_pos.y < 0
                 {
                     continue;
                 }
-                if map_maze[testing_pos.y as usize][testing_pos.x as usize] {
+                if !map_maze[new_pos.y as usize][new_pos.x as usize] {
+                    continue;
+                }
+
+                // In case we are bigger than one TILE check if other parts fit as well
+                let mut will_fit: bool = true;
+                for offset in new_space_taken_offsets {
+                    let testing_pos = &offset + &input;
+                    // Befora I push I should check if I am outside of map -> and if so not push!
+                    if testing_pos.x >= config::TILES_PER_WIDTH
+                        || testing_pos.x < 0
+                        || testing_pos.y >= config::ROWS_PER_HEIGHT
+                        || testing_pos.y < 0
+                    {
+                        will_fit = false;
+                        break;
+                    }
+                    if !map_maze[testing_pos.y as usize][testing_pos.x as usize] {
+                        will_fit = false;
+                        break;
+                    }
+                }
+
+                if will_fit {
                     sucs.push(new_pos);
                 }
             }
@@ -266,7 +337,7 @@ fn generate_map_system(
         //    );
         //}
         //println!("my_pos: {:?}", my_pos);
-        let goal: Pos = Pos { x: my_pos.x, y: 0 };
+        let goal: Pos = Pos { x: my_pos.x, y: 2 };
         let result = astar(
             &my_pos,
             |p| successors(*p),
